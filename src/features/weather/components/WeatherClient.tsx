@@ -21,29 +21,23 @@ export function WeatherClient({ county, township, initialData }: WeatherClientPr
   const [isLocating, setIsLocating] = useState(false);
 
   async function handleLocate() {
-    if (!navigator.geolocation) return;
     setIsLocating(true);
-    navigator.geolocation.getCurrentPosition(
-      async (pos) => {
-        try {
-          const res = await fetch(
-            `/api/locate?lat=${pos.coords.latitude}&lon=${pos.coords.longitude}`
-          );
-          if (!res.ok) return;
-          const { location, township: detectedTownship } = (await res.json()) as {
-            location?: string;
-            township?: string | null;
-          };
-          if (!location) return;
-          const params = new URLSearchParams({ location });
-          if (detectedTownship) params.set("township", detectedTownship);
-          router.replace(`?${params.toString()}`);
-        } finally {
-          setIsLocating(false);
-        }
-      },
-      () => setIsLocating(false)
-    );
+    try {
+      const res = await fetch("/api/locate");
+      if (!res.ok) return;
+      const { location, township: detectedTownship } = (await res.json()) as {
+        location?: string;
+        township?: string | null;
+      };
+      if (!location) return;
+      const params = new URLSearchParams({ location });
+      if (detectedTownship) params.set("township", detectedTownship);
+      router.replace(`?${params.toString()}`);
+    } catch {
+      // 靜默失敗
+    } finally {
+      setIsLocating(false);
+    }
   }
 
   const { data, isFetching, refetch, dataUpdatedAt } = useWeather({
