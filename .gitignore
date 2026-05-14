@@ -39,3 +39,9 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# package manager lock files (this project uses pnpm)
+yarn.lock
+
+# Claude Code local settings
+.claude/
