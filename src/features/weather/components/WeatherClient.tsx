@@ -64,7 +64,14 @@ export function WeatherClient({ county, township, initialData }: WeatherClientPr
     ? "border-white/20 hover:bg-white/10"
     : "border-slate-300 hover:bg-black/5";
 
-  const timeStr = new Date(dataUpdatedAt).toLocaleTimeString("zh-TW", {
+  const updatedAt = new Date(dataUpdatedAt);
+  const dateStr = updatedAt.toLocaleDateString("zh-TW", {
+    year: "numeric",
+    month: "numeric",
+    day: "numeric",
+    timeZone: "Asia/Taipei",
+  });
+  const timeStr = updatedAt.toLocaleTimeString("zh-TW", {
     hour: "2-digit",
     minute: "2-digit",
     timeZone: "Asia/Taipei",
@@ -168,7 +175,9 @@ export function WeatherClient({ county, township, initialData }: WeatherClientPr
 
           {/* 更新狀態列 */}
           <div className={`flex items-center justify-center gap-3 text-xs ${txtFaint}`}>
-            <span>更新於 {timeStr}</span>
+            <span>
+              更新於 {dateStr} {timeStr}
+            </span>
             <button
               onClick={() => void refetch()}
               disabled={isFetching}
