@@ -1,6 +1,7 @@
 "use client";
 
-import { Fragment, Suspense } from "react";
+import { Fragment, Suspense, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { useWeather } from "@/features/weather/hooks/useWeather";
 import { LocationSelector } from "./LocationSelector";
 import { TownshipSelector } from "./TownshipSelector";
@@ -13,9 +14,44 @@ interface WeatherClientProps {
   county: TaiwanLocation;
   township: string;
   initialData: WeatherApiResponse;
+  hasExplicitLocation: boolean;
 }
 
-export function WeatherClient({ county, township, initialData }: WeatherClientProps) {
+export function WeatherClient({
+  county,
+  township,
+  initialData,
+  hasExplicitLocation,
+}: WeatherClientProps) {
+  const router = useRouter();
+
+  useEffect(() => {
+    if (hasExplicitLocation || !navigator.geolocation) return;
+
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        const { latitude, longitude } = pos.coords;
+        try {
+          const res = await fetch(`/api/locate?lat=${latitude}&lon=${longitude}`);
+          if (!res.ok) return;
+          const { location, township: detectedTownship } = (await res.json()) as {
+            location?: string;
+            township?: string | null;
+          };
+          if (!location) return;
+          const params = new URLSearchParams({ location });
+          if (detectedTownship) params.set("township", detectedTownship);
+          router.replace(`?${params.toString()}`);
+        } catch {
+          // 靜默失敗，維持預設地點
+        }
+      },
+      (err) => {
+        console.warn("Geolocation error:", err.code, err.message);
+      }
+    );
+  }, [hasExplicitLocation, router]);
+
   const { data, isFetching, refetch, dataUpdatedAt } = useWeather({
     county,
     township,
