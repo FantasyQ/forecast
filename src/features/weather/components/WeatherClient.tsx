@@ -239,7 +239,7 @@ function ForecastTimeline({
               )}
               <div className="flex items-center justify-between gap-2">
                 {/* 時間 */}
-                <span className={`w-20 text-xs tabular-nums ${txtFaint}`}>
+                <span className={`w-20 text-xs font-mono ${txtFaint}`}>
                   {p.startTime}–{p.endTime}
                 </span>
                 {/* Emoji */}
