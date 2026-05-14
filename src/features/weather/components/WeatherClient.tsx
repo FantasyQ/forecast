@@ -1,6 +1,6 @@
 "use client";
 
-import { Fragment, Suspense, useEffect } from "react";
+import { Fragment, Suspense, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useWeather } from "@/features/weather/hooks/useWeather";
 import { LocationSelector } from "./LocationSelector";
@@ -14,25 +14,21 @@ interface WeatherClientProps {
   county: TaiwanLocation;
   township: string;
   initialData: WeatherApiResponse;
-  hasExplicitLocation: boolean;
 }
 
-export function WeatherClient({
-  county,
-  township,
-  initialData,
-  hasExplicitLocation,
-}: WeatherClientProps) {
+export function WeatherClient({ county, township, initialData }: WeatherClientProps) {
   const router = useRouter();
+  const [isLocating, setIsLocating] = useState(false);
 
-  useEffect(() => {
-    if (hasExplicitLocation || !navigator.geolocation) return;
-
+  async function handleLocate() {
+    if (!navigator.geolocation) return;
+    setIsLocating(true);
     navigator.geolocation.getCurrentPosition(
       async (pos) => {
-        const { latitude, longitude } = pos.coords;
         try {
-          const res = await fetch(`/api/locate?lat=${latitude}&lon=${longitude}`);
+          const res = await fetch(
+            `/api/locate?lat=${pos.coords.latitude}&lon=${pos.coords.longitude}`
+          );
           if (!res.ok) return;
           const { location, township: detectedTownship } = (await res.json()) as {
             location?: string;
@@ -42,15 +38,13 @@ export function WeatherClient({
           const params = new URLSearchParams({ location });
           if (detectedTownship) params.set("township", detectedTownship);
           router.replace(`?${params.toString()}`);
-        } catch {
-          // 靜默失敗，維持預設地點
+        } finally {
+          setIsLocating(false);
         }
       },
-      (err) => {
-        console.warn("Geolocation error:", err.code, err.message);
-      }
+      () => setIsLocating(false)
     );
-  }, [hasExplicitLocation, router]);
+  }
 
   const { data, isFetching, refetch, dataUpdatedAt } = useWeather({
     county,
@@ -79,6 +73,7 @@ export function WeatherClient({
   const timeStr = new Date(dataUpdatedAt).toLocaleTimeString("zh-TW", {
     hour: "2-digit",
     minute: "2-digit",
+    timeZone: "Asia/Taipei",
   });
 
   return (
@@ -91,6 +86,15 @@ export function WeatherClient({
           <div
             className={`flex items-center justify-center gap-2 rounded-2xl border px-4 py-3 backdrop-blur-md ${headerBg}`}
           >
+            <button
+              onClick={() => void handleLocate()}
+              disabled={isLocating}
+              title="偵測目前位置"
+              className={`text-base leading-none transition-opacity disabled:opacity-40 ${isLocating ? "animate-pulse" : ""}`}
+            >
+              📍
+            </button>
+            <span className={`text-sm ${divider}`}>|</span>
             <Suspense>
               <LocationSelector currentLocation={county} className={selectCls} />
             </Suspense>

@@ -16,29 +16,36 @@ function getPointValue(loc: TownshipLocation, elementName: string): Record<strin
   return (time.ElementValue[0] ?? {}) as Record<string, string>;
 }
 
+const TZ = "Asia/Taipei";
+
 function formatHHMM(isoString: string): string {
-  const d = new Date(isoString);
-  return d.toLocaleTimeString("zh-TW", {
+  return new Date(isoString).toLocaleTimeString("zh-TW", {
     hour: "2-digit",
     minute: "2-digit",
     hour12: false,
+    timeZone: TZ,
+  });
+}
+
+function toTaiwanDateString(isoString: string): string {
+  return new Date(isoString).toLocaleDateString("zh-TW", {
+    timeZone: TZ,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
   });
 }
 
 function formatDate(isoString: string): string {
+  const target = toTaiwanDateString(isoString);
+  const now = new Date().toISOString();
+  const today = toTaiwanDateString(now);
+  const tomorrow = toTaiwanDateString(new Date(Date.now() + 86_400_000).toISOString());
+
+  if (target === today) return "今天";
+  if (target === tomorrow) return "明天";
   const d = new Date(isoString);
-  const today = new Date();
-  const tomorrow = new Date(today);
-  tomorrow.setDate(today.getDate() + 1);
-
-  const sameDay = (a: Date, b: Date) =>
-    a.getFullYear() === b.getFullYear() &&
-    a.getMonth() === b.getMonth() &&
-    a.getDate() === b.getDate();
-
-  if (sameDay(d, today)) return "今天";
-  if (sameDay(d, tomorrow)) return "明天";
-  return `${d.getMonth() + 1}/${d.getDate()}`;
+  return d.toLocaleDateString("zh-TW", { timeZone: TZ, month: "numeric", day: "numeric" });
 }
 
 function buildForecast(loc: TownshipLocation): ForecastSummary {

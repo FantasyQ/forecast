@@ -47,14 +47,5 @@ export default async function Home({ searchParams }: HomeProps) {
     updatedAt: new Date().toISOString(),
   };
 
-  const hasExplicitLocation = TAIWAN_LOCATIONS.includes(rawLocation as TaiwanLocation);
-
-  return (
-    <WeatherClient
-      county={county}
-      township={selectedTownship}
-      initialData={initialData}
-      hasExplicitLocation={hasExplicitLocation}
-    />
-  );
+  return <WeatherClient county={county} township={selectedTownship} initialData={initialData} />;
 }
