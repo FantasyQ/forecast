@@ -177,7 +177,10 @@ export function WeatherClient({ county, township, initialData }: WeatherClientPr
           {/* 更新狀態列 */}
           <div className={`flex items-center justify-center gap-3 text-sm ${txtFaint}`}>
             <span>
-              更新於 {dateStr} {timeStr}
+              更新於{" "}
+              <span className="font-mono">
+                {dateStr} {timeStr}
+              </span>
             </span>
             <button
               onClick={() => void refetch()}
