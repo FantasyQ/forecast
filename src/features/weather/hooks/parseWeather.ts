@@ -78,10 +78,14 @@ function buildForecast(loc: TownshipLocation): ForecastSummary {
     const weatherCode =
       (wxPeriod?.ElementValue[0] as Record<string, string> | undefined)?.["WeatherCode"] ?? "0";
 
+    const nowMs = Date.now();
+    const isCurrent = new Date(StartTime).getTime() <= nowMs && nowMs < new Date(EndTime).getTime();
+
     return {
       startTime: formatHHMM(StartTime),
       endTime: formatHHMM(EndTime),
       date: formatDate(StartTime),
+      isCurrent,
       minTemp,
       maxTemp,
       pop,

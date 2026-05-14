@@ -171,6 +171,7 @@ export function WeatherClient({ county, township, initialData }: WeatherClientPr
               txt={txt}
               txtSub={txtSub}
               txtFaint={txtFaint}
+              isDark={theme.isDark}
             />
           )}
 
@@ -204,6 +205,7 @@ interface ForecastTimelineProps {
   txt: string;
   txtSub: string;
   txtFaint: string;
+  isDark: boolean;
 }
 
 function ForecastTimeline({
@@ -214,6 +216,7 @@ function ForecastTimeline({
   txt,
   txtSub,
   txtFaint,
+  isDark,
 }: ForecastTimelineProps) {
   return (
     <div className={`rounded-2xl border p-4 backdrop-blur-md space-y-3 ${card}`}>
@@ -237,9 +240,11 @@ function ForecastTimeline({
                   {p.date}
                 </div>
               )}
-              <div className="flex items-center justify-between gap-2">
+              <div
+                className={`flex items-center justify-between gap-2 rounded-lg px-2 -mx-2 py-0.5 ${p.isCurrent ? (isDark ? "bg-white/15" : "bg-black/[0.07]") : ""}`}
+              >
                 {/* 時間 */}
-                <span className={`w-20 text-xs font-mono ${txtFaint}`}>
+                <span className={`w-20 text-xs font-mono ${p.isCurrent ? txt : txtFaint}`}>
                   {p.startTime}–{p.endTime}
                 </span>
                 {/* Emoji */}
