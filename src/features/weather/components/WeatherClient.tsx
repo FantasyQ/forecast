@@ -74,6 +74,7 @@ export function WeatherClient({ county, township, initialData }: WeatherClientPr
   const timeStr = updatedAt.toLocaleTimeString("zh-TW", {
     hour: "2-digit",
     minute: "2-digit",
+    hour12: false,
     timeZone: "Asia/Taipei",
   });
 
