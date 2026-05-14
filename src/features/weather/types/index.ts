@@ -1,6 +1,7 @@
 export interface ForecastPeriod {
   startTime: string; // "00:00"
   endTime: string; // "03:00"
+  date: string; // "今天" | "明天" | "5/16"
   minTemp: string; // "21"
   maxTemp: string; // "23"
   pop: string; // "30"

@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense } from "react";
+import { Fragment, Suspense } from "react";
 import { useWeather } from "@/features/weather/hooks/useWeather";
 import { LocationSelector } from "./LocationSelector";
 import { TownshipSelector } from "./TownshipSelector";
@@ -180,31 +180,39 @@ function ForecastTimeline({
 
       {/* 每個 3 小時時段 */}
       <div className="space-y-2">
-        {periods.map((p) => {
+        {periods.map((p, i) => {
           const theme = getWeatherTheme(p.weatherCode);
+          const showDateLabel = i === 0 || p.date !== periods[i - 1]?.date;
           return (
-            <div key={p.startTime} className="flex items-center justify-between gap-2">
-              {/* 時間 */}
-              <span className={`w-20 text-xs tabular-nums ${txtFaint}`}>
-                {p.startTime}–{p.endTime}
-              </span>
-              {/* Emoji */}
-              <span className="text-base leading-none">{theme.emoji}</span>
-              {/* 天氣文字 */}
-              <span className={`flex-1 text-xs ${txtSub}`}>{p.weather}</span>
-              {/* 溫度區間 */}
-              <span className={`text-sm font-medium tabular-nums ${txt}`}>
-                {p.minTemp}–{p.maxTemp}°
-              </span>
-              {/* 降雨機率 */}
-              <span
-                className={`w-10 text-right text-sm tabular-nums ${
-                  p.pop !== "—" && parseInt(p.pop, 10) > 30 ? "text-blue-400" : txtFaint
-                }`}
-              >
-                {p.pop === "—" ? "—" : `${p.pop}%`}
-              </span>
-            </div>
+            <Fragment key={p.startTime}>
+              {showDateLabel && (
+                <div className={`text-xs font-medium ${txtSub} ${i > 0 ? "pt-1" : ""}`}>
+                  {p.date}
+                </div>
+              )}
+              <div className="flex items-center justify-between gap-2">
+                {/* 時間 */}
+                <span className={`w-20 text-xs tabular-nums ${txtFaint}`}>
+                  {p.startTime}–{p.endTime}
+                </span>
+                {/* Emoji */}
+                <span className="text-base leading-none">{theme.emoji}</span>
+                {/* 天氣文字 */}
+                <span className={`flex-1 text-xs ${txtSub}`}>{p.weather}</span>
+                {/* 溫度區間 */}
+                <span className={`text-sm font-medium tabular-nums ${txt}`}>
+                  {p.minTemp}–{p.maxTemp}°
+                </span>
+                {/* 降雨機率 */}
+                <span
+                  className={`w-10 text-right text-sm tabular-nums ${
+                    p.pop !== "—" && parseInt(p.pop, 10) > 30 ? "text-blue-400" : txtFaint
+                  }`}
+                >
+                  {p.pop === "—" ? "—" : `${p.pop}%`}
+                </span>
+              </div>
+            </Fragment>
           );
         })}
       </div>

@@ -25,6 +25,22 @@ function formatHHMM(isoString: string): string {
   });
 }
 
+function formatDate(isoString: string): string {
+  const d = new Date(isoString);
+  const today = new Date();
+  const tomorrow = new Date(today);
+  tomorrow.setDate(today.getDate() + 1);
+
+  const sameDay = (a: Date, b: Date) =>
+    a.getFullYear() === b.getFullYear() &&
+    a.getMonth() === b.getMonth() &&
+    a.getDate() === b.getDate();
+
+  if (sameDay(d, today)) return "今天";
+  if (sameDay(d, tomorrow)) return "明天";
+  return `${d.getMonth() + 1}/${d.getDate()}`;
+}
+
 function buildForecast(loc: TownshipLocation): ForecastSummary {
   const tempEl = loc.WeatherElement.find((e) => e.ElementName === "溫度");
   const popEl = loc.WeatherElement.find((e) => e.ElementName === "3小時降雨機率");
@@ -58,6 +74,7 @@ function buildForecast(loc: TownshipLocation): ForecastSummary {
     return {
       startTime: formatHHMM(StartTime),
       endTime: formatHHMM(EndTime),
+      date: formatDate(StartTime),
       minTemp,
       maxTemp,
       pop,
