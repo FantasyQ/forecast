@@ -264,25 +264,27 @@ export function WeatherClient({ county, township, initialData }: WeatherClientPr
           )}
 
           {/* 更新狀態列 */}
-          <div className={`flex items-center justify-center gap-3 text-sm ${txtFaint}`}>
-            <span>
+          <footer
+            className={`flex flex-wrap items-center justify-center gap-x-2 gap-y-1 text-xs ${txtFaint}`}
+          >
+            <span className="whitespace-nowrap">
               更新於{" "}
               <span className="font-mono">
                 {dateStr} {timeStr}
               </span>
             </span>
+            <span className="whitespace-nowrap font-mono" aria-label="網站版本">
+              v{process.env.NEXT_PUBLIC_APP_VERSION}
+            </span>
             <button
               onClick={() => void refetch()}
               disabled={isFetching}
-              className={`rounded-full border px-3 py-1 transition-all disabled:opacity-40 ${btnBorder} ${txtSub}`}
+              className={`shrink-0 rounded-full border px-2 py-1 transition-all disabled:opacity-40 ${btnBorder} ${txtSub}`}
             >
               {isFetching ? "更新中…" : "重新整理"}
             </button>
-          </div>
+          </footer>
         </section>
-        <footer className={`text-center text-xs ${txtSub}`}>
-          版本 <span className="font-mono">{process.env.NEXT_PUBLIC_APP_VERSION}</span>
-        </footer>
       </div>
     </div>
   );
