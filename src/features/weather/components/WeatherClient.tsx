@@ -209,7 +209,6 @@ export function WeatherClient({ county, township, initialData }: WeatherClientPr
             </p>
           </div>
           <p className={`text-2xl font-light mt-1 ${txt}`}>{weather.weather}</p>
-          <p className={`mt-2 max-w-xs text-sm leading-relaxed ${txtSub}`}>{weather.description}</p>
         </main>
 
         {/* 下方：數據卡片 */}
