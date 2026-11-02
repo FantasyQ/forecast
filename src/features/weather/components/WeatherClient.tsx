@@ -267,6 +267,9 @@ export function WeatherClient({ county, township, initialData }: WeatherClientPr
             </button>
           </div>
         </section>
+        <footer className={`text-center text-xs ${txtSub}`}>
+          版本 <span className="font-mono">{process.env.NEXT_PUBLIC_APP_VERSION}</span>
+        </footer>
       </div>
     </div>
   );
