@@ -92,12 +92,8 @@ export function WeatherClient({ county, township, initialData }: WeatherClientPr
   }, [router]);
 
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    // 指定地點的連結保留原選擇；一般首頁自動定位。
-    const timer =
-      !params.has("location") && !params.has("township")
-        ? window.setTimeout(() => void handleLocate(), 0)
-        : undefined;
+    // 每次開啟頁面都定位，包括先前選擇地點後留下的網址。
+    const timer = window.setTimeout(() => void handleLocate(), 0);
     return () => {
       window.clearTimeout(timer);
       locationRequest.current?.abort();
@@ -164,9 +160,23 @@ export function WeatherClient({ county, township, initialData }: WeatherClientPr
               disabled={isLocating}
               title="偵測目前位置"
               aria-label="偵測目前位置"
-              className={`text-base leading-none transition-opacity disabled:opacity-40 ${isLocating ? "animate-pulse" : ""}`}
+              className={`inline-flex items-center justify-center rounded-full p-1 transition-opacity hover:opacity-70 disabled:opacity-40 ${txt} ${isLocating ? "animate-pulse" : ""}`}
             >
-              📍
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                aria-hidden="true"
+                focusable="false"
+              >
+                <circle cx="12" cy="12" r="7" />
+                <circle cx="12" cy="12" r="3" fill="currentColor" stroke="none" />
+                <path d="M12 2v3m0 14v3M2 12h3m14 0h3" />
+              </svg>
             </button>
             <span className={`text-sm ${divider}`}>|</span>
             <Suspense>
