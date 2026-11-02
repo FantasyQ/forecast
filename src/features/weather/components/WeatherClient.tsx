@@ -200,10 +200,14 @@ export function WeatherClient({ county, township, initialData }: WeatherClientPr
 
         {/* 中央：天氣主角 */}
         <main className="flex flex-1 flex-col items-center justify-center gap-4 text-center">
-          <p className="text-8xl leading-none select-none">{theme.emoji}</p>
-          <p className={`text-9xl font-thin tracking-tighter leading-none ${txt}`}>
-            {weather.temperature}°
-          </p>
+          <div className="flex items-center justify-center gap-4 sm:gap-6">
+            <p className="shrink-0 text-7xl leading-none select-none sm:text-8xl">{theme.emoji}</p>
+            <p
+              className={`whitespace-nowrap text-8xl font-thin tracking-tighter leading-none sm:text-9xl ${txt}`}
+            >
+              {weather.temperature}°
+            </p>
+          </div>
           <p className={`text-2xl font-light mt-1 ${txt}`}>{weather.weather}</p>
           <p className={`mt-2 max-w-xs text-sm leading-relaxed ${txtSub}`}>{weather.description}</p>
         </main>
