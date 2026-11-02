@@ -1,6 +1,6 @@
 "use client";
 
-import { Fragment, Suspense, useState } from "react";
+import { Fragment, Suspense, useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useWeather } from "@/features/weather/hooks/useWeather";
 import { LocationSelector } from "./LocationSelector";
@@ -19,25 +19,96 @@ interface WeatherClientProps {
 export function WeatherClient({ county, township, initialData }: WeatherClientProps) {
   const router = useRouter();
   const [isLocating, setIsLocating] = useState(false);
+  const [locationMessage, setLocationMessage] = useState("");
+  const locationRequest = useRef<AbortController | null>(null);
 
-  async function handleLocate() {
+  const handleLocate = useCallback(async () => {
+    locationRequest.current?.abort();
+    const controller = new AbortController();
+    locationRequest.current = controller;
     setIsLocating(true);
+    setLocationMessage("正在取得目前位置…");
+
     try {
-      const res = await fetch("/api/locate");
-      if (!res.ok) return;
+      if (!window.isSecureContext || !navigator.geolocation) {
+        throw new Error("此瀏覽器或連線不支援定位，請手動選擇地點。");
+      }
+
+      const position = await new Promise<GeolocationPosition>((resolve, reject) => {
+        navigator.geolocation.getCurrentPosition(
+          resolve,
+          (error) => {
+            reject(
+              new Error(
+                error.code === 1
+                  ? "未允許定位，請開啟瀏覽器定位權限後再試，或手動選擇地點。"
+                  : "暫時無法取得位置，請重試或手動選擇地點。"
+              )
+            );
+          },
+          { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 }
+        );
+      });
+      if (controller.signal.aborted) return;
+
+      const coordinates = new URLSearchParams({
+        lat: String(position.coords.latitude),
+        lon: String(position.coords.longitude),
+      });
+      const res = await fetch(`/api/locate?${coordinates}`, {
+        signal: AbortSignal.any([controller.signal, AbortSignal.timeout(10000)]),
+        cache: "no-store",
+      });
+      if (!res.ok) {
+        throw new Error(
+          res.status === 404
+            ? "目前僅提供臺灣天氣，請手動選擇地點。"
+            : "無法辨識所在地，請重試或手動選擇地點。"
+        );
+      }
       const { location, township: detectedTownship } = (await res.json()) as {
         location?: string;
         township?: string | null;
       };
-      if (!location) return;
-      const params = new URLSearchParams({ location });
+      if (controller.signal.aborted) return;
+      if (!location) throw new Error("無法辨識所在地，請手動選擇地點。");
+      const params = new URLSearchParams(window.location.search);
+      params.set("location", location);
+      params.delete("township");
       if (detectedTownship) params.set("township", detectedTownship);
-      router.replace(`?${params.toString()}`);
-    } catch {
-      // 靜默失敗
+      router.replace(`?${params.toString()}`, { scroll: false });
+      setLocationMessage(`已定位至 ${location}${detectedTownship ?? ""}`);
+    } catch (error) {
+      if (!controller.signal.aborted) {
+        setLocationMessage(
+          error instanceof Error && error.name === "Error"
+            ? error.message
+            : "定位失敗，請重試或手動選擇地點。"
+        );
+      }
     } finally {
-      setIsLocating(false);
+      if (!controller.signal.aborted) setIsLocating(false);
     }
+  }, [router]);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    // 指定地點的連結保留原選擇；一般首頁自動定位。
+    const timer =
+      !params.has("location") && !params.has("township")
+        ? window.setTimeout(() => void handleLocate(), 0)
+        : undefined;
+    return () => {
+      window.clearTimeout(timer);
+      locationRequest.current?.abort();
+    };
+  }, [handleLocate]);
+
+  function handleManualLocationChange() {
+    // 避免較晚完成的定位覆蓋使用者剛選擇的地點。
+    locationRequest.current?.abort();
+    setIsLocating(false);
+    setLocationMessage("");
   }
 
   const { data, isFetching, refetch, dataUpdatedAt } = useWeather({
@@ -84,7 +155,7 @@ export function WeatherClient({ county, township, initialData }: WeatherClientPr
     >
       <div className="flex min-h-screen flex-col items-center justify-between px-6 py-8 gap-8">
         {/* 頂部：地點選擇器 */}
-        <header className="w-full max-w-sm">
+        <header className="w-full max-w-sm" onChangeCapture={handleManualLocationChange}>
           <div
             className={`flex items-center justify-center gap-2 rounded-2xl border px-4 py-3 backdrop-blur-md ${headerBg}`}
           >
@@ -92,6 +163,7 @@ export function WeatherClient({ county, township, initialData }: WeatherClientPr
               onClick={() => void handleLocate()}
               disabled={isLocating}
               title="偵測目前位置"
+              aria-label="偵測目前位置"
               className={`text-base leading-none transition-opacity disabled:opacity-40 ${isLocating ? "animate-pulse" : ""}`}
             >
               📍
@@ -111,6 +183,9 @@ export function WeatherClient({ county, township, initialData }: WeatherClientPr
               </Suspense>
             )}
           </div>
+          <p role="status" className={`mt-2 text-center text-xs ${txtSub}`}>
+            {locationMessage}
+          </p>
         </header>
 
         {/* 中央：天氣主角 */}
